@@ -23,6 +23,26 @@ const pool = new Pool({
   password: "pass",
   port: 5432,
 });
+//function for inserting data to db
+async function insertData(
+  reamid: string,
+  accessToken: string,
+  refreshToken: string
+) {
+  try {
+    const client = await pool.connect();
+
+    const sql =
+      "INSERT INTO auth_tokens (reamid, accessToken, refreshToken) VALUES ($1, $2, $3)";
+    const values = [reamid, accessToken, refreshToken];
+
+    await client.query(sql, values);
+    console.log("Data inserted successfully.");
+    client.release();
+  } catch (error) {
+    console.error("Error inserting data:", error);
+  }
+}
 
 // @ts-ignore
 export const oauthClient = new OAuthClient({
@@ -48,6 +68,7 @@ server.get("/callback", (req, res) => {
   oauthClient
     .createToken(req.url)
     .then(function (authResponse: any) {
+      const reamId = authResponse.getJson().real;
       oauth2_token_json = JSON.stringify(authResponse.getJson(), null, 2);
       res.send(oauth2_token_json);
     })

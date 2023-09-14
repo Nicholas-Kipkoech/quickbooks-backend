@@ -14,9 +14,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag postgres:$(date +%s)
+        run: docker build . --file Dockerfile --tag quickbooks:latest
 
       - name: Run Docker container
         run: |
-          docker run --rm -d -p 5432:5432 --name my-postgres-container postgres:$(date +%s)
+          docker run --rm -d -p 5432:5432 --name my-postgres-container quickbooks:latest
         # Add more steps or commands to test, deploy, or use the running container as needed
