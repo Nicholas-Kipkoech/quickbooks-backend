@@ -25,7 +25,7 @@ const pool = new Pool({
 });
 //function for inserting data to db
 async function insertData(
-  reamid: string,
+  realmId: string,
   accessToken: string,
   refreshToken: string
 ) {
@@ -33,8 +33,8 @@ async function insertData(
     const client = await pool.connect();
 
     const sql =
-      "INSERT INTO auth_tokens (reamid, accessToken, refreshToken) VALUES ($1, $2, $3)";
-    const values = [reamid, accessToken, refreshToken];
+      "INSERT INTO auth_tokens (realmId, accessToken, refreshToken) VALUES ($1, $2, $3)";
+    const values = [realmId, accessToken, refreshToken];
 
     await client.query(sql, values);
     console.log("Data inserted successfully.");
@@ -67,8 +67,11 @@ server.get("/auth", (req: Request, res: Response) => {
 server.get("/callback", (req, res) => {
   oauthClient
     .createToken(req.url)
-    .then(function (authResponse: any) {
-      const reamId = authResponse.getJson().real;
+    .then(async function (authResponse: any) {
+      const realmId = authResponse.getJson().realmId;
+      const accessToken = authResponse.getToken().access_token;
+      const refreshToken = authResponse.getToken().refresh_token;
+      await insertData(realmId, accessToken, refreshToken);
       oauth2_token_json = JSON.stringify(authResponse.getJson(), null, 2);
       res.send(oauth2_token_json);
     })
