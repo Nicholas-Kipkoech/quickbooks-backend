@@ -7,7 +7,7 @@ import accountRouter from "./routes/Accounts.ts";
 import billRouter from "./routes/Bills.ts";
 import employeeRouter from "./routes/Employees.ts";
 import cors from "cors";
-import { Pool } from "pg";
+import insertAuthtokens from "./helpers/data.controller.ts";
 
 const server = express();
 
@@ -16,33 +16,7 @@ server.use(cors());
 
 //connect to postgress
 
-const pool = new Pool({
-  user: "nick",
-  host: "postgres", // Replace with your Docker container's hostname or IP
-  database: "quickbooks",
-  password: "pass",
-  port: 5432,
-});
 //function for inserting data to db
-async function insertData(
-  realmId: string,
-  accessToken: string,
-  refreshToken: string
-) {
-  try {
-    const client = await pool.connect();
-
-    const sql =
-      "INSERT INTO auth_tokens (realmId, accessToken, refreshToken) VALUES ($1, $2, $3)";
-    const values = [realmId, accessToken, refreshToken];
-
-    await client.query(sql, values);
-    console.log("Data inserted successfully.");
-    client.release();
-  } catch (error) {
-    console.error("Error inserting data:", error);
-  }
-}
 
 // @ts-ignore
 export const oauthClient = new OAuthClient({
@@ -68,12 +42,12 @@ server.get("/callback", (req, res) => {
   oauthClient
     .createToken(req.url)
     .then(async function (authResponse: any) {
-      const realmId = authResponse.getJson().realmId;
+      const realmId = oauthClient.getToken().realmId;
       const accessToken = authResponse.getToken().access_token;
       const refreshToken = authResponse.getToken().refresh_token;
-      await insertData(realmId, accessToken, refreshToken);
+      await insertAuthtokens(realmId, accessToken, refreshToken);
       oauth2_token_json = JSON.stringify(authResponse.getJson(), null, 2);
-      res.send(oauth2_token_json);
+      res.send({ success: "App connected successfully" });
     })
     .catch(function (e: Error) {
       return res.status(500).json(e);
