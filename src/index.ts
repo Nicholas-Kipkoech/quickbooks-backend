@@ -7,8 +7,9 @@ import accountRouter from "./routes/Accounts.ts";
 import billRouter from "./routes/Bills.ts";
 import employeeRouter from "./routes/Employees.ts";
 import cors from "cors";
-import insertAuthtokens from "./helpers/data.controller.ts";
-
+import authToken from "./config/authToken.ts";
+import qbDb from "./helpers/data.controller.ts";
+import cron from "node-cron";
 const server = express();
 
 config();
@@ -45,7 +46,8 @@ server.get("/callback", (req, res) => {
       const realmId = oauthClient.getToken().realmId;
       const accessToken = authResponse.getToken().access_token;
       const refreshToken = authResponse.getToken().refresh_token;
-      await insertAuthtokens(realmId, accessToken, refreshToken);
+      await qbDb.insertAuthtokens(realmId, accessToken, refreshToken);
+
       oauth2_token_json = JSON.stringify(authResponse.getJson(), null, 2);
       res.send({ success: "App connected successfully" });
     })
@@ -53,22 +55,25 @@ server.get("/callback", (req, res) => {
       return res.status(500).json(e);
     });
 });
-//for quering refreshtoken
-server.get("/refreshAccessToken", (req, res) => {
-  oauthClient
-    .refresh()
-    .then(function (authResponse: any) {
-      console.log(
-        "The Refresh Token is  " + JSON.stringify(authResponse.getJson())
-      );
-      oauth2_token_json = JSON.stringify(authResponse.getJson(), null, 2);
-      res.send(oauth2_token_json);
-    })
-    .catch(function (e: Error) {
-      res.send(e);
-    });
+
+//update auth tokens in db
+const task = cron.schedule("*/50 * * * *", async () => {
+  try {
+    const { realmId } = await authToken.getAccessTokenAndRealmId();
+    const { refresh_token, access_token } =
+      await authToken.updateRefreshToken();
+    await qbDb.updateAuthToken(realmId, access_token, refresh_token);
+    console.log("Data updated successfully.");
+  } catch (error) {
+    console.error("Error:", error);
+  }
 });
 
+// Log that the job has started
+console.log("Cron job started.");
+
+// Start the cron job
+task.start();
 //endpoints with customer router imports
 server.use("/customers", customerRouter);
 server.use("/accounts", accountRouter);

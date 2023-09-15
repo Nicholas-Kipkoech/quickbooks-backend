@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { config } from "dotenv";
 import axios from "axios";
-import getAccessTokenAndRealmId from "../config/authToken.ts";
+import authToken from "../config/authToken.ts";
+
 config();
 
 const fetchAccounts = async (req: Request, res: Response) => {
   try {
-    const { realmId, accessToken } = await getAccessTokenAndRealmId();
+    const { realmId, accessToken } = await authToken.getAccessTokenAndRealmId();
     const query = "SELECT * FROM Account";
     const apiUrl = `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/query`;
 

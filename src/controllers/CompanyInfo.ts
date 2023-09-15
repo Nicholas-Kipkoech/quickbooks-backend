@@ -1,14 +1,10 @@
-import { Request, Response } from "express";
-import { config } from "dotenv";
 import axios from "axios";
 import authToken from "../config/authToken.ts";
 
-config();
-
-const fetchEmployees = async (req: Request, res: Response) => {
+async function fetchCompanyInfo() {
   try {
     const { realmId, accessToken } = await authToken.getAccessTokenAndRealmId();
-    const query = "SELECT * FROM Employee";
+    const query = "SELECT * FROM CompanyInfo";
     const apiUrl = `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/query`;
 
     const response = await axios.get(apiUrl, {
@@ -20,10 +16,11 @@ const fetchEmployees = async (req: Request, res: Response) => {
         query: query,
       },
     });
-    return res.send({ employees: response.data.QueryResponse.Employee });
-  } catch (error: any) {
-    console.log(error);
-  }
-};
 
-export default fetchEmployees;
+    return response.data.QueryResponse.CompanyInfo;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export default fetchCompanyInfo;

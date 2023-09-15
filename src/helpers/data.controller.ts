@@ -7,7 +7,7 @@ async function insertAuthtokens(
   try {
     const client = await pool.connect();
     const sql =
-      "INSERT INTO auth_tokens (realmid, accesstoken, refreshtoken) VALUES ($1, $2, $3)";
+      "INSERT INTO quickbook (realmid, accesstoken, refreshtoken) VALUES ($1, $2, $3)";
     const values = [realmId, accessToken, refreshToken];
     await client.query(sql, values);
     console.log("Data inserted successfully.");
@@ -17,4 +17,22 @@ async function insertAuthtokens(
   }
 }
 
-export default insertAuthtokens;
+async function updateAuthToken(
+  realmId: string,
+  accessToken: string,
+  refreshToken: string
+) {
+  try {
+    const client = await pool.connect();
+    const sql =
+      "UPDATE quickbook SET accesstoken = $2, refreshtoken = $3 WHERE realmid = $1";
+    const values = [realmId, accessToken, refreshToken];
+    await client.query(sql, values);
+    console.log("Data updated successfully.");
+    client.release();
+  } catch (error) {
+    console.error("Error updating data:", error);
+  }
+}
+
+export default { insertAuthtokens, updateAuthToken };

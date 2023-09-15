@@ -1,13 +1,12 @@
 import { Request, Response } from "express";
 import { config } from "dotenv";
 import axios from "axios";
+import authToken from "../config/authToken.ts";
 config();
-
-const accessToken = process.env.ACCESS_TOKEN;
-const realmId = "4620816365340768660";
 
 const fetchBills = async (req: Request, res: Response) => {
   try {
+    const { realmId, accessToken } = await authToken.getAccessTokenAndRealmId();
     const query = "SELECT * FROM bill";
     const apiUrl = `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/query`;
 
