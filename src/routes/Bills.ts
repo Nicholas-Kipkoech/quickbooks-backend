@@ -1,8 +1,9 @@
 import express from "express";
-import fetchBills from "../controllers/Bills.ts";
+import billController from "../controllers/Bills.ts";
 
 const billRouter = express.Router();
 
-billRouter.get("/fetch", fetchBills);
+billRouter.get("/fetch", billController.fetchBills);
+billRouter.get("/fetch/bill/:billID", billController.fetchBill);
 
 export default billRouter;

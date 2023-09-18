@@ -1,9 +1,10 @@
 import express from "express";
 
-import fetchAccounts from "../controllers/Accounts.ts";
+import accountsController from "../controllers/Accounts.ts";
 
 const accountRouter = express.Router();
 
-accountRouter.get("/fetch", fetchAccounts);
+accountRouter.get("/fetch", accountsController.fetchAccounts);
+accountRouter.get("/fetch/account/:accountID", accountsController.fetchAccount);
 
 export default accountRouter;

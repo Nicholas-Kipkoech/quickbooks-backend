@@ -26,4 +26,22 @@ const fetchAccounts = async (req: Request, res: Response) => {
   }
 };
 
-export default fetchAccounts;
+const fetchAccount = async (req: Request, res: Response) => {
+  try {
+    const { realmId, accessToken } = await authToken.getAccessTokenAndRealmId();
+    const accountID = req.params.accountID;
+    const apiUrl = `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/account/${accountID}`;
+    const response = await axios.get(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const accountData = response.data.Account;
+    return res.status(200).json({ account: accountData });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+};
+
+export default { fetchAccounts, fetchAccount };
